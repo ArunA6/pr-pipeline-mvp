@@ -1,6 +1,6 @@
 # PLAN
 
-## Clarifying Questions
+## 1. Clarifying Questions
 What is the core “unit” of data (scope of code changes: PR, inter-PR) we want to capture?
 
 Assume that the scope of focus will be per PR data.
@@ -29,7 +29,7 @@ Assume we can abstract/generalize these requirements to focus on general charact
 - completelness
 - trace consistency
 
-## Proposed Data Schema
+## 2. Proposed Data Schema
 High-level Schema:
 ```
 {
@@ -105,7 +105,7 @@ Schema design motivation:
 - Fully ordered and queryable by seq
 - New event types can be added easily
 
-## High-Level Technical Plan
+## 3. High-Level Technical Plan
 
 IDE Telemetry =>  Ingestion API =>  Queue/Processor =>  Storage
                      |                 |                   |
@@ -124,7 +124,7 @@ Tech Stack: Python 3, FastAPI, Redis Streams (queue), Postgres database (indexin
 
 Justification: Quick to prorotype and easy to deploy, minimal depedenency, could be scaled later
 
-## Scope & Trade-offs
+## 4. Scope & Trade-offs
 
 MVP Scope: 
 - Ingest events from IDE to API
@@ -139,3 +139,53 @@ Extensions:
 - Full environment snapshotting
 - Detailed CI integration and multiple PR linking
 - Security and privacy layers
+
+--------------------------------------------------------------
+
+# GUIDE
+
+Follow these steps to run and test the PR Telemetry MVP locally.
+
+## Prerequisites
+- Git and Docker and Docker Compose installed locally
+- curl or HTTPie for sending test requests
+
+## 1. Clone repo and start the services
+```bash
+git clone https://github.com/<your-username>/<repo-name>.git
+cd <repo-name>
+docker compose -f infra/docker-compose.yml up --build -d
+```
+
+## 2. Post a sample telemetry batch
+You can adjust the data in tests/fixutres/sample_batch as desired.
+```bash
+curl -s localhost:8000/ingest \
+  -H "Content-Type: application/json" \
+  -d @tests/fixtures/sample_batch.json | jq
+```
+
+## 3. Validate data retrieved
+Postgres:
+```bash
+docker compose -f infra/docker-compose.yml exec postgres \
+  psql -U postgres -d telemetry -c "SELECT * FROM traces;"
+docker compose -f infra/docker-compose.yml exec postgres \
+  psql -U postgres -d telemetry -c "SELECT COUNT(*) FROM events_index;"
+```
+The results from here will provide a trace_id you can correlate to an event in MiniO:
+
+MiniO:
+- Open http://localhost:9001 ()
+- Login: Username = minio, Password = minio12345
+- Check event (navigate Buckets => traces => raw => <trace_id>.ndjson)
+
+4. Validate deduplication
+Resend same batch:
+```bash
+curl -s localhost:8000/ingest \
+  -H "Content-Type: application/json" \
+  -d @tests/fixtures/sample_batch.json | jq '.accepted_event_ids | length'
+```
+The expected results is 0 as duplicates are ignored.
+Try this after changed a field (e.g. files_changed from 2 to 3) and re-send, then you should see 1 new event accepted.
