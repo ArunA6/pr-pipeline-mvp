@@ -1,0 +1,20 @@
+{
+  "pr_id": "owner/repo#123",
+  "repo_name": "owner/repo",
+  "branch": "feature/fix-123",
+  "status": "open",
+  "events": [
+    {"seq": 1, "ts": "2025-11-08T21:00:00Z", "type": "edit",
+     "payload": {"file": "src/app.py", "change_summary": "+10/-2", "diff_snippet": "@@ -12,6 +12,8 @@"}},
+    {"seq": 2, "ts": "2025-11-08T21:01:10Z", "type": "command",
+     "payload": {"command": "pytest -q", "exit_code": 1, "stdout_sample": "FAILED test_api.py::test_login"}},
+    {"seq": 3, "ts": "2025-11-08T21:07:22Z", "type": "edit",
+     "payload": {"file": "src/auth.py", "change_summary": "+4/-0", "diff_snippet": "@@ -33,0 +34,4 @@"}},
+    {"seq": 4, "ts": "2025-11-08T21:08:00Z", "type": "test",
+     "payload": {"framework": "pytest", "passed": 12, "failed": 0, "duration_s": 3.2}},
+    {"seq": 5, "ts": "2025-11-08T21:09:10Z", "type": "commit",
+     "payload": {"sha": "abc123", "message": "fix: handle empty input case", "files_changed": 2}},
+    {"seq": 6, "ts": "2025-11-08T21:10:00Z", "type": "annotation",
+     "payload": {"text": "Root cause: None input in validator; added guard."}}
+  ]
+}
