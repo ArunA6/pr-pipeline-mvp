@@ -180,7 +180,7 @@ MiniO:
 - Login: Username = minio, Password = minio12345
 - Check event (navigate Buckets => traces => raw => <trace_id>.ndjson)
 
-4. Validate deduplication
+## 4. Validate deduplication
 Resend same batch:
 ```bash
 curl -s localhost:8000/ingest \
